@@ -1,22 +1,31 @@
 import time
 import os
+from catalog import *
 
-documents = [
-    {"type": "passport", "number": "2207 876234", "name": "Василий Гупкин"},
-    {"type": "invoice", "number": "11-2", "name": "Геннадий Покемонов"},
-    {"type": "insurance", "number": "10006", "name": "Аристарх Павлов"},
+# Декоратор для логирования в заданный файл - log.txt
+def write_log(old_function):
+    '''
+    Декоратор логирует в заданный файл - log.txt
+    '''
+    def new_function(*args, **kwargs):
+        time_stamp_start = time.strftime('%Y-%m-%d-%H_%M_%S')
+        result = old_function(*args, **kwargs)
+        log_info = f'время вызова: {time_stamp_start}, функция: {old_function.__name__}, ' \
+                   f'для аргументов {args}, {kwargs} значение функции: {result}'
+        # print(time_stamp_start, old_function.__name__, args, kwargs)
+        path_write = os.path.join(os.getcwd(), 'log.txt')
+        with open(path_write, "a", encoding='utf-8') as file:
+            file.write(log_info + "\n")
+        return result
+    return new_function
 
-]
 
-directories = {
-    '1': ["2207 876234", "11-2"],
-    '2': ["10006"],
-    '3': []
-}
-
+# Декоратор для логирования с параметром
 def write_log_path(path):
+    '''
+    Декоратор логирует в файл, указанный в параметре path
+    '''
     def _write_log(old_function):
-
         def new_function(*args, **kwargs):
             time_stamp_start = time.strftime('%Y-%m-%d-%H_%M_%S')
             result = old_function(*args, **kwargs)
@@ -29,6 +38,7 @@ def write_log_path(path):
             return result
         return new_function
     return _write_log
+
 
 @write_log_path('log_2.txt')
 def people(catalog):
@@ -47,6 +57,7 @@ def people(catalog):
         return f">>>По номеру документа нет данных"
 
 
+@write_log
 def shelf(shelf_list):
     '''
     Функция находит полку хранения документа по номеру документа.
@@ -57,10 +68,10 @@ def shelf(shelf_list):
     count = 0
     for number_shelf, numbers_list in shelf_list.items():
         if doc_num in numbers_list:
-            return print(f">>> Документ с указанным номером находится на полке №{number_shelf}")
+            return f">>> Документ с указанным номером находится на полке №{number_shelf}"
             count = + 1
     if count == 0:
-        return print(">>>По номеру документа нет данных")
+        return f">>>По номеру документа нет данных"
 
 
 def doc_listing(catalog):
